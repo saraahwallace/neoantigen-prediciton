@@ -74,30 +74,3 @@ pvacseq net_chop /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results
 /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/MHC_Class_II_SNPs/TUMOR.fasta \
 /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/MHC_Class_II_SNPs/MHC_II_net_chop.tsv
 
-### Kallisto - Calculate transcript expression
-# Download transcriptome FASTA from https://www.gencodegenes.org/mouse/
-wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M33/gencode.vM33.transcripts.fa.gz
-
-kallisto index --index=indexed_transcripts /Volumes/archive/cancergeneticslab/SarahWallace/gencode.vM33.transcripts.fa.gz
-Output: 
-[build] loading fasta file /Volumes/archive/cancergeneticslab/SarahWallace/gencode.vM33.transcripts.fa.gz
-[build] k-mer length: 31
-[build] warning: clipped off poly-A tail (longer than 10)
-        from 879 target sequences...
-[build] target de Bruijn graph has 907493 contigs and contains 123227765 k-mers 
-
-
-
-#MergeSamFiles (Picard ) - Merge RNA-seq SSM3 tumour BAMs from five samples for use in Kallisto. 
-java -jar picard.jar MergeSamFiles -I align_Cont_only_1_Aligned.sortedByCoord.out.bam -I align_Cont_only_2_Aligned.sortedByCoord.out.bam -I align_Cont_only_3_Aligned.sortedByCoord.out.bam -I align_Cont_only_4_Aligned.sortedByCoord.out.bam -I align_Cont_only_5_Aligned.sortedByCoord.out.bam -O RNA_seq_merged.bam
-
-### Kallisto quant - runs the quantification algorithm on FASTQ files. Computes equivalence classes for reads and quantifies abundances.
-Usage: kallisto quant [arguments] FASTQ-files
-kallisto quant -i indexed_transcripts -o /Volumes/archive/cancergeneticslab/SarahWallace/kallisto/all_RNA_seq_abundance /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_1_S10_R1_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_1_S10_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_2_S14_R1_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_2_S14_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_3_S18_R1_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_3_S18_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_4_S22_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_4_S22_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_5_S26_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_5_S26_R2_001.fastq.gz
-#Output:
-[quant] fragment length distribution will be estimated from the data
-[index] k-mer length: 31
-[index] number of targets: 149,488
-[index] number of k-mers: 123,227,765
-[index] number of equivalence classes: 538,560
-[quant] running in paired-end mode...
