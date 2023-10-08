@@ -1,1 +1,86 @@
+### VarScan - Variant calling and filtering for high-confidence somatic SNP mutations ###
+VarScan2 source page -  https://varscan.sourceforge.net/somatic-calling.html
+
+# Install VarScan 2.3.9
+wget https://phoenixnap.dl.sourceforge.net/project/varscan/VarScan.v2.3.9.jar
+# Unpack jar file
+jar -xvf VarScan.v2.3.9.jar
+
+### Create pileup files using mpileup function
+samtools mpileup -f ref/GRCm39.fna sorted_normal.bam >normal.pileup
+samtools mpileup -f ref/GRCm39.fna sorted_tumour.bam >tumour.pileup
+
+### Run VarScan for somatic (SNP/ Indel) variant calling 
+java -jar VarScan.v2.3.9.jar somatic normal.pileup tumour.pileup \
+SSM3_somatic_variants.vcf --output-vcf 1
+
+### Run somatic variant calling function of VarScan2
+java -jar VarScan.v2.3.9.jar somatic normal.pileup tumour.pileup SSM3_somatic_variants.vcf --output-vcf 1
+Output:
+Normal Pileup: normal.pileup
+Tumor Pileup: tumour.pileup
+Min coverage:   8x for Normal, 6x for Tumor
+Min reads2:     2
+Min strands2:   1
+Min var freq:   0.2
+Min freq for hom:       0.75
+Normal purity:  1.0
+Tumor purity:   1.0
+Min avg qual:   15
+P-value thresh: 0.99
+Somatic p-value:        0.05
+2549779018 positions in tumor
+2549759102 positions shared in normal
+2508088694 had sufficient coverage for comparison
+2501280269 were called Reference
+0 were mixed SNP-indel calls and filtered
+6468234 were called Germline
+73083 were called LOH
+168546 were called Somatic
+98562 were called Unknown
+0 were called Variant
+
+### Isolating Calls by Type and Confidence
+# The latest release of VarScan includes a new (undocumented) subcommand that will separate a somatic output
+#file by somatic_status (Germline, Somatic, LOH). Somatic mutations will further be classified as 
+#high-confidence (.hc) or low-confidence (.lc). 
+
+java -jar VarScan.v2.3.9.jar processSomatic SSM3_somatic_variants.vcf.snp --output-vcf 1
+# Output:
+Reading input from SSM3_somatic_variants.vcf.snp
+Opening output files: SSM3_somatic_variants.vcf.snp.Somatic SSM3_somatic_variants.vcf.snp.Germline SSM3_somatic_variants.vcf.snp.LOH 
+5785516 VarScan calls processed
+135975 were Somatic (89536 high confidence)
+5522161 were Germline (5489294 high confidence)
+47938 were LOH (47742 high confidence)
+
+java -jar VarScan.v2.3.9.jar processSomatic SSM3_somatic_variants.vcf.indel --output-vcf 1
+# Output:
+Reading input from SSM3_somatic_variants.vcf.indel
+Opening output files: SSM3_somatic_variants.vcf.indel.Somatic SSM3_somatic_variants.vcf.indel.Germline SSM3_somatic_variants.vcf.indel.LOH 
+1022909 VarScan calls processed
+32571 were Somatic (19640 high confidence)
+946073 were Germline (923627 high confidence)
+25145 were LOH (25104 high confidence)
+
+### Filter and remove somatic false positives due to alignment problems near indels.
+
+java -jar VarScan.v2.3.9.jar somaticFilter SSM3_somatic_variants.vcf.snp.Somatic.hc 
+–indel-file SSM3_somatic_variants.vcf.indel 
+–output-file SSM3_somatic_variants.vcf.snp.Somatic.hc.filter
+# Output:
+Window size:    10
+Window SNPs:    3
+Indel margin:   3
+Reading input from SSM3_somatic_variants.vcf.snp.Somatic.hc
+3376 cluster SNPs identified
+Reading input from SSM3_somatic_variants.vcf.snp.Somatic.hc
+89536 variants in input stream
+307 failed to meet coverage requirement
+3303 failed to meet reads2 requirement
+0 failed to meet varfreq requirement
+1036 failed to meet p-value requirement
+3778 in SNP clusters were removed
+0 were removed near indels
+81112 passed filters
 
