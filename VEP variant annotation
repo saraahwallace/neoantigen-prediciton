@@ -1,0 +1,54 @@
+### VEP - VCF annotation ###
+### pVACseq input file preparation ###
+
+### Downloads during installation
+# Download cache files
+#The VEP can either connect to remote or local databases, or use local cache files.
+#Using local cache files is the fastest and most efficient way to run the VEP
+# Cache files will be stored in /Volumes/archive/userdata/student_users/sarahwallace/.vep/mus_musculus/110_GRCm39/
+260 : mus_musculus_vep_110_GRCm39.tar.gz (1 GB)
+
+#Download FASTA file
+#The VEP can use FASTA files to retrieve sequence data for HGVS notations and reference sequence checks.
+#FASTA files will be stored in /Volumes/archive/userdata/student_users/sarahwallace/.vep/mus_musculus/110_GRCm39/Mus_musculus.GRCm39.dna.toplevel.fa.gz
+# 163
+--fasta mus_musculus/Mus_musculus.GRCm39.dna.toplevel.fa.gz
+/Volumes/archive/userdata/student_users/sarahwallace/.vep/mus_musculus/110_GRCm39/Mus_musculus.GRCm39.dna.toplevel.fa.gz
+
+### pVACseq reccomended VEP usage:
+./vep [--cache|--offline|--database] [arguments]
+
+./vep \
+--input_file <input VCF> --output_file <output VCF> \
+--format vcf --vcf --symbol --terms SO --tsl --biotype \
+--hgvs --fasta <reference build FASTA file location> \
+--offline --cache [--dir_cache <VEP cache directory>] \
+--plugin Frameshift --plugin Wildtype \
+[--dir_plugins <VEP_plugins directory>] [--pick] [--transcript_version] \
+--stats_file annotated_SSM3_somatic_SNP_summary.html 
+
+--format vcf option specifies that the input file is in VCF format.
+--vcf option will result in the output being written in VCF format.
+--symbol option will include gene symbol in the annotation.
+--terms SO option will result in Sequence Ontology terms being used for the consequences.
+--tsl option adds transcript support level information to the annotation.
+--biotype option adds biotype of the transcript or regulatory feature to the annotation.
+--hgvs option will result in HGVS identifiers being added to the annotation.
+--hgvs option requires the usage of the --fasta argument to specify the location of the reference genome build FASTA file.
+--offline option will eliminate all network connections for speed and/or privacy.
+--cache option will result in the VEP cache being used for annotation.
+--plugin Frameshift option will run the Frameshift plugin which will apply a frameshift mutation to a transcript sequence to compute the full mutated protein sequence.
+--plugin Wildtype option will run the Wildtype plugin which will include the transcript protein sequence in the annotation.
+
+### Running VEP
+
+# Annotating high confidence SNPs VCF
+./vep --input_file /Volumes/archive/cancergeneticslab/SarahWallace/VarScan/SSM3_somatic_variants.snp.somatic.hc.vcf 
+--format vcf --species mus_musculus --assembly GRCm39 
+--output_file /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/ensembl-vep/VEP_annotated_SSM3_somatic_hc_SNP.vcf 
+--vcf --symbol --terms SO --tsl --biotype --offline 
+--cache /Volumes/archive/userdata/student_users/sarahwallace/.vep/mus_musculus/110_GRCm39/mus_musculus_vep_110_GRCm39.tar.gz 
+--dir_cache /Volumes/archive/userdata/student_users/sarahwallace/.vep --hgvs 
+--fasta /Volumes/archive/userdata/student_users/sarahwallace/.vep/mus_musculus/110_GRCm39/Mus_musculus.GRCm39.dna.toplevel.fa 
+--dir_plugins /Volumes/archive/userdata/student_users/sarahwallace/cancergeneticslab/SarahWallace/pVACseq/VEP_plugins 
+--plugin Frameshift --plugin Wildtype --pick --transcript_version --stats_file VEP_annotated_SSM3_somatic_hc_SNP_summary.html  
