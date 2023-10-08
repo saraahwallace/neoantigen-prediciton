@@ -1,0 +1,49 @@
+### Data pre-processing ###
+
+### SRAToolkit- Data download from Griffith et al., 2016 paper https://pubmed.ncbi.nlm.nih.gov/27681435/
+
+wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
+tar xvfz sratoolkit.current-ubuntu64.tar.gz
+./sratoolkit.3.0.6-ubuntu64/bin/prefetch --max-size 70GB SRR2142113 -O .
+./sratoolkit.3.0.6-ubuntu64/bin/fasterq-dump --split-files ./SRR2142113.sra -O SRR2142113-fastq/ -p -e 24 -x
+
+### FastQC - Qualoty control checks on data
+fastqc SRR2142113_1.fastq.gz #Normal
+fastqc SRR2142113_2.fastq.gz #Normal
+fastqc SRR2142076_1.fastq.gz #Tumour
+fastqc SRR2142076_2.fastq.gz #Tumour
+
+### BWA - Align to latest mouse reference genome (GRCm39)
+
+# Index the reference genome 
+bwa index ref/GRCm39.fna
+
+samtools faidx GRCm39.fna
+java -jar $PICARDDIR/picard.jar CreateSequenceDictionary R=GRCm39.fna O=genome.dict
+
+#Align WGS data to reference 
+bwa mem -M -t 12 ref/GRCm39.fna SRR2142113_1.fastq.gz SRR2142113_2.fastq.gz > aligned_normal.sam
+bwa mem -M -t 12 ref/GRCm39.fna SRR2142076_1.fastq.gz SRR2142076_2.fastq.gz > aligned_tumour.sam
+
+### Convert SAM to BAM
+samtools view -Sb aligned_normal.sam > aligned_normal.bam
+samtools view -Sb aligned_tumour.sam > aligned_tumour.bam
+
+### Check BWA mapping quality (MAPQ)
+samtools view normal.bam | cut -f 5 | sort -n | uniq -c > normal-mapq-counts.txt
+samtools view tumour.bam | cut -f 5 | sort -n | uniq -c > tumour-mapq-counts.txt
+
+### SortSam - Sort reads by coordinate order
+
+java -jar picard.jar SortSam \
+INPUT=aligned_normal.bam \
+OUTPUT=sorted_normal.bam \
+SORT_ORDER=coordinate \
+VALIDATION_STRINGENCY=SILENT
+
+java -jar picard.jar SortSam \
+INPUT=aligned_tumour.bam \
+OUTPUT=sorted_tumour.bam \
+SORT_ORDER=coordinate \
+VALIDATION_STRINGENCY=SILENT
+
