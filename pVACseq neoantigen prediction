@@ -1,0 +1,103 @@
+### pVACseq neoantigen prediction ###
+
+### Installation
+pip install pvactools
+pip show pvactools
+# Output:
+Version: 4.0.3
+Summary: A cancer immunotherapy tools suite
+Home-page: https://github.com/griffithlab/pVACtools
+Author: Jasreet Hundal, Susanna Kiwala, Joshua McMichael, Christopher A Miller, Alexander T Wollam, Huiming Xia, 
+Connor J Liu, Sidi Zhao, Yang-Yang Feng, Aaron P Graubert, Amber Z Wollam, Jonas Neichin, Megan Neveau, Jason Walker, 
+William E Gillanders, Elaine R Mardis, Obi L Griffith, Malachi Griffith
+Author-email: help@pvactools.org
+lsLicense: BSD-3-Clause-Clear
+
+usage: pvacseq run [-h] [-e1 CLASS_I_EPITOPE_LENGTH]
+                   [-e2 CLASS_II_EPITOPE_LENGTH]
+                   [--iedb-install-directory IEDB_INSTALL_DIRECTORY]
+                   [-b BINDING_THRESHOLD]
+                   [--percentile-threshold PERCENTILE_THRESHOLD]
+                   [--allele-specific-binding-thresholds]
+                   [--aggregate-inclusion-binding-threshold AGGREGATE_INCLUSION_BINDING_THRESHOLD]
+                   [-m {lowest,median}] [-r IEDB_RETRIES] [-k] [-t N_THREADS]
+                   [--net-chop-method {cterm,20s}] [--netmhc-stab]
+                   [--net-chop-threshold NET_CHOP_THRESHOLD]
+                   [--problematic-amino-acids PROBLEMATIC_AMINO_ACIDS]
+                   [--run-reference-proteome-similarity]
+                   [--blastp-path BLASTP_PATH]
+                   [--blastp-db {refseq_select_prot,refseq_protein}]
+                   [--peptide-fasta PEPTIDE_FASTA] [-a {sample_name}]
+                   [-s FASTA_SIZE] [--exclude-NAs]
+                   [-d DOWNSTREAM_SEQUENCE_LENGTH]
+                   [--normal-sample-name NORMAL_SAMPLE_NAME]
+                   [-p PHASED_PROXIMAL_VARIANTS_VCF] [-c MINIMUM_FOLD_CHANGE]
+                   [--normal-cov NORMAL_COV] [--tdna-cov TDNA_COV]
+                   [--trna-cov TRNA_COV] [--normal-vaf NORMAL_VAF]
+                   [--tdna-vaf TDNA_VAF] [--trna-vaf TRNA_VAF]
+                   [--expn-val EXPN_VAL]
+                   [--maximum-transcript-support-level {1,2,3,4,5}]
+                   [--allele-specific-anchors]
+                   [--anchor-contribution-threshold ANCHOR_CONTRIBUTION_THRESHOLD]
+                   [--pass-only] [--tumor-purity TUMOR_PURITY]
+                   input_file sample_name allele
+                   {MHCflurry,MHCflurryEL,MHCnuggetsI,MHCnuggetsII,NNalign,NetMHC,NetMHCIIpan,NetMHCIIpanEL,NetMHCcons,NetMHCpan,NetMHCpanEL,PickPocket,SMM,SMMPMBEC,SMMalign,all,all_class_i,all_class_ii}
+                   [{MHCflurry,MHCflurryEL,MHCnuggetsI,MHCnuggetsII,NNalign,NetMHC,NetMHCIIpan,NetMHCIIpanEL,NetMHCcons,NetMHCpan,NetMHCpanEL,PickPocket,SMM,SMMPMBEC,SMMalign,all,all_class_i,all_class_ii} ...]
+                   output_dir
+
+### Run pVACseq using NetMHCpan 4.1 to predcit H2-Kb MHC-I neoantigens 
+pvacseq run /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/VEP_annotated_SSM3_somatic_hc_SNP.vcf \ TUMOR H-2-Kb \
+NetMHCpan \ /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/NetMHCpan_MHC_Class_I
+
+### Run pVACseq using NetMHCIIpan 4.1 to predcit H2-IAb MHC-II neoantigens
+pvacseq run /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/VEP_annotated_SSM3_somatic_hc_SNP.vcf \ TUMOR \ H2-IAb \
+NetMHCIIpan \ /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results
+
+Output notes: Tumor clonal VAF estimated as 0.5 (estimated from Tumor DNA VAF data). Assuming variants with VAF < 0.25 are subclonal.
+
+# NetChop - Predict cleavage sites for neoepitopes.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --method {cterm,20s}  NetChop prediction method to use ("cterm" for C term
+                        3.0, "20s" for 20S 3.0). (default: cterm)
+  --threshold THRESHOLD
+                        NetChop prediction threshold. (default: 0.5)
+
+# MHC-I
+pvacseq net_chop /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/NetMHCpan_MHC_Class_I/MHC_Class_I/TUMOR.filtered.tsv \
+/Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/NetMHCpan_MHC_Class_I/MHC_Class_I/TUMOR.fasta \
+/Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/NetMHCpan_MHC_Class_I/MHC_Class_I/net_chop.tsv 
+
+# MHC-II
+pvacseq net_chop /Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/MHC_Class_II_SNPs/TUMOR.filtered.tsv \
+/Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/MHC_Class_II_SNPs/TUMOR.fasta \
+/Volumes/archive/cancergeneticslab/SarahWallace/pVACseq/results/MHC_Class_II_SNPs/MHC_II_net_chop.tsv
+
+### Kallisto - Calculate transcript expression
+# Download transcriptome FASTA from https://www.gencodegenes.org/mouse/
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M33/gencode.vM33.transcripts.fa.gz
+
+kallisto index --index=indexed_transcripts /Volumes/archive/cancergeneticslab/SarahWallace/gencode.vM33.transcripts.fa.gz
+Output: 
+[build] loading fasta file /Volumes/archive/cancergeneticslab/SarahWallace/gencode.vM33.transcripts.fa.gz
+[build] k-mer length: 31
+[build] warning: clipped off poly-A tail (longer than 10)
+        from 879 target sequences...
+[build] target de Bruijn graph has 907493 contigs and contains 123227765 k-mers 
+
+
+
+#MergeSamFiles (Picard ) - Merge RNA-seq SSM3 tumour BAMs from five samples for use in Kallisto. 
+java -jar picard.jar MergeSamFiles -I align_Cont_only_1_Aligned.sortedByCoord.out.bam -I align_Cont_only_2_Aligned.sortedByCoord.out.bam -I align_Cont_only_3_Aligned.sortedByCoord.out.bam -I align_Cont_only_4_Aligned.sortedByCoord.out.bam -I align_Cont_only_5_Aligned.sortedByCoord.out.bam -O RNA_seq_merged.bam
+
+### Kallisto quant - runs the quantification algorithm on FASTQ files. Computes equivalence classes for reads and quantifies abundances.
+Usage: kallisto quant [arguments] FASTQ-files
+kallisto quant -i indexed_transcripts -o /Volumes/archive/cancergeneticslab/SarahWallace/kallisto/all_RNA_seq_abundance /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_1_S10_R1_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_1_S10_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_2_S14_R1_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_2_S14_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_3_S18_R1_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_3_S18_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_4_S22_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_4_S22_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_5_S26_R2_001.fastq.gz /Volumes/archive/cancergeneticslab/SarahWallace/Cont_only_5_S26_R2_001.fastq.gz
+#Output:
+[quant] fragment length distribution will be estimated from the data
+[index] k-mer length: 31
+[index] number of targets: 149,488
+[index] number of k-mers: 123,227,765
+[index] number of equivalence classes: 538,560
+[quant] running in paired-end mode...
