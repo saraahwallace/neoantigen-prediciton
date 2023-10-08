@@ -1,4 +1,6 @@
 ### Kallisto - Calculate transcript expression
+# The SSM3 tumour RNA-seq data used in this project had previously been generated in FASTQ format by a student in the Biochemistry department named Sarah Barber. 
+
 # Download transcriptome FASTA from https://www.gencodegenes.org/mouse/
 wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M33/gencode.vM33.transcripts.fa.gz
 
