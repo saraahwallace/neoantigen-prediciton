@@ -29,6 +29,13 @@ bwa mem -M -t 12 ref/GRCm39.fna SRR2142076_1.fastq.gz SRR2142076_2.fastq.gz > al
 samtools view -Sb aligned_normal.sam > aligned_normal.bam
 samtools view -Sb aligned_tumour.sam > aligned_tumour.bam
 
+# Check BAM mapping stats
+samtools stats sorted_normal.bam > sorted_normal.stats
+plot-bamstats -p sorted_normal.stats
+
+samtools stats sorted_tumour.bam > sorted_tumour.stats
+plot-bamstats -p sorted_tumour.stats
+
 ### Check BWA mapping quality (MAPQ)
 samtools view normal.bam | cut -f 5 | sort -n | uniq -c > normal-mapq-counts.txt
 samtools view tumour.bam | cut -f 5 | sort -n | uniq -c > tumour-mapq-counts.txt
